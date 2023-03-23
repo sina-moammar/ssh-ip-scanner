@@ -184,7 +184,6 @@ function startScan() {
 
 async function testIPs(ipList) {
   for (const el of ipList) {
-    console.log(el.ip)
     testNo++;
     var testResult = 0;
     const url = `https://${el.ip}/__down`;
@@ -232,12 +231,12 @@ async function testIPs(ipList) {
 
     if (testResult == 5 && latency <= maxLatency) {
       numberOfWorkingIPs++;
-      validIPs.push({ip: el.ip, location: el.location, latency: latency, page_link: el.page_link});
+      validIPs.push({ip: el.ip, location: el.location, latency: latency, page_link: el.page_link, country: el.country});
       const sortedArr = validIPs.sort((a, b) => a.latency - b.latency);
       const tableRows = sortedArr.map(obj => `
         <tr>
           <td></td>
-          <td>${obj.ip}</td>
+          <td>${obj.ip} (${obj.country})</td>
           <td>${obj.latency}ms</td>
           <td>
             <a height="20px" target='_blank' href='${obj.page_link}'><img src="assets/logo.png" height="20px"></a>
@@ -268,11 +267,11 @@ function copyToClipboard(ip) {
 
 
 function randomizeElements(arr) {
-  return [...arr].sort((el1, el2) => {return Math.random()});
+  return [...arr].sort(el => {return Math.random() >= 0.5 ? 1 : -1});
 }
 
 function downloadAsCSV() {
-  const csvString = validIPs.map(el => el.ip).join('\n');
+  const csvString = 'ip,country,latency,page_link\n' + validIPs.map(el => [el.ip, el.country, el.latency, el.page_link].join(',')).join('\n');
   const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -285,7 +284,7 @@ function downloadAsCSV() {
 }
 
 function downloadAsJSON() {
-  const jsonString = JSON.stringify(validIPs.map(el => el.ip), null, 2);
+  const jsonString = JSON.stringify(validIPs.map(el => el), null, 2);
   const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
